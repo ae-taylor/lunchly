@@ -57,9 +57,34 @@ class Customer {
     return new Customer(customer);
   }
 
-  //fullName method (){
-  //return concatenation of first/last name
-  //}
+  /** return customers whose first or last name
+   * match searched name */
+
+  static async searchCustomers(name) {
+    const results = await db.query(
+      `SELECT id,
+                  first_name AS "firstName",
+                  last_name  AS "lastName",
+                  phone,
+                  notes
+           FROM customers
+           WHERE LOWER(CONCAT(first_name, ' ', last_name)) ilike $1`,
+      ['%' + name + '%'],
+    );
+
+    const customers = results.rows
+    console.log(customers)
+
+    if (!customers) {
+      const err = new Error(`not found: ${name}`);
+      err.status = 404;
+      throw err;
+    }
+
+    return customers.map(c => new Customer(c));
+  }
+
+  /** return full name (first name concat with last name) */
 
   fullName() {
     return `${this.firstName} ${this.lastName}`;

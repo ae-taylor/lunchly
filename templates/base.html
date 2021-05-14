@@ -33,9 +33,12 @@
           <a class="nav-link" href="/add/">Add a Customer</a>
         </li>
         <li class = "nav-item">
-              <input type="search" id="form1" class="form-control" />
-              <label class="form-label" for="form1"></label>
-            <a class="btn btn-primary" style="float: right" href="/add/">Search</a>
+          <div class="input-group">
+            <form action="/search" type="hidden">
+            <input name="name" type="search" class="form-control rounded" placeholder="Search" aria-label="Search"
+              aria-describedby="search-addon" />
+            <button type="submit" class="btn btn-outline-primary">search</button>
+          </form>
           </div>
         </li>
       </ul>

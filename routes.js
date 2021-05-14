@@ -3,6 +3,7 @@
 /** Routes for Lunchly */
 
 const express = require("express");
+const { connect } = require("./db");
 
 const Customer = require("./models/customer");
 const Reservation = require("./models/reservation");
@@ -15,6 +16,16 @@ router.get("/", async function (req, res, next) {
   const customers = await Customer.all();
   //may have to loop through customers
   return res.render("customer_list.html", { customers });
+});
+
+/** Show list of customers matching searched name */
+router.get("/search", async function (req, res, next) {
+  const name = req.query.name;
+  console.log(req.query.name)
+  const customers = await Customer.searchCustomers(name);
+  console.log(`route customers`, customers)
+  return res.render("customer_list.html", { customers })
+
 });
 
 /** Form to add a new customer. */
@@ -32,6 +43,10 @@ router.post("/add/", async function (req, res, next) {
 
   return res.redirect(`/${customer.id}/`);
 });
+
+router.get('/favicon.ico', function (req, res, next){
+  return res.send('')
+})
 
 /** Show a customer, given their ID. */
 
