@@ -77,7 +77,7 @@ class Customer {
           HAVING count(reservations.id) > 0 
           ORDER BY res_count desc
           LIMIT 10;`
-    );
+    ); //having clause isn't necessary w inner join, both conditions must be met
     const customers = results.rows;
     console.log("top10queryresults", customers, customers.length);
 
@@ -105,6 +105,9 @@ class Customer {
                   notes
            FROM customers
            WHERE LOWER(CONCAT(first_name, ' ', last_name)) ilike $1`,
+           // CONCAT ignores null values-- if we pass undefined into it somehow, 
+           //CONCAT will make this an empty string
+
       ['%' + name + '%'], // could use string interpolation with `` instead
     );
 

@@ -33,6 +33,9 @@ router.get("/top", async function (req, res, next) {
     return res.render("error.html", { err });
   }
 });
+//minimize number of try/catches here
+//instead of all of this, we could just put the logic into the template where,
+//if the array is empty, we just display something else
 
 
 /** Show list of customers matching searched name */
@@ -50,7 +53,9 @@ router.get("/search", async function (req, res, next) {
     return res.render("error.html", { err });
   }
 });
-
+//same as above
+//try/catch is built in from express via the global error handler in app.js
+//so we don't explicitly NEED to add try/catch statements here
 
 /** Form to add a new customer. */
 
@@ -75,7 +80,7 @@ router.post("/add/", async function (req, res, next) {
 router.get('/favicon.ico', function (req, res, next) {
   return res.send('')
 })
-
+//there are some libraries in express that can handle this for us
 
 /** Show a customer, given their ID. */
 
