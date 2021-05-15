@@ -14,7 +14,6 @@ class Customer {
     this.lastName = lastName;
     this.phone = phone;
     this.notes = notes;
-    //this.fullName = fullName;
   }
 
   /** find all customers. */
@@ -31,6 +30,7 @@ class Customer {
     );
     return results.rows.map(c => new Customer(c));
   }
+
 
   /** get a customer by ID. */
 
@@ -57,8 +57,44 @@ class Customer {
     return new Customer(customer);
   }
 
+
+  /**  
+   * gets the 10 customers who have had the most
+   * reservations (if they've had at least 1 reservation)
+   * otherwise, throws error
+  */
+
+  static async getTopTenCustomers() {
+    const results = await db.query(
+      `SELECT customers.id,
+                 customers.first_name as "firstName",
+                 customers.last_name as "lastName",
+                 count(reservations.id) as res_count 
+          FROM customers
+          JOIN reservations 
+          ON customers.id = reservations.customer_id 
+          GROUP BY customers.id, customers.first_name, customers.last_name
+          HAVING count(reservations.id) > 0 
+          ORDER BY res_count desc
+          LIMIT 10;`
+    );
+    const customers = results.rows;
+    console.log("top10queryresults", customers, customers.length);
+
+    if (customers.length === 0) {
+      const err = new Error(`No customers fulfilling condition.`);//
+      err.status = 404;//maybe don't need a 404 here, an empty array would maybe be more clear
+      throw err;
+    }
+
+    return customers.map(c => new Customer(c));
+
+  }
+
+
   /** return customers whose first or last name
-   * match searched name */
+   * match searched name 
+   */
 
   static async searchCustomers(name) {
     const results = await db.query(
@@ -69,13 +105,12 @@ class Customer {
                   notes
            FROM customers
            WHERE LOWER(CONCAT(first_name, ' ', last_name)) ilike $1`,
-      ['%' + name + '%'],
+      ['%' + name + '%'], // could use string interpolation with `` instead
     );
 
     const customers = results.rows
-    console.log(customers)
-
-    if (!customers) {
+    //if no results returned to customers array, throw error
+    if (customers.length === 0) { //don't necessary need to throw an error, just the empty result
       const err = new Error(`not found: ${name}`);
       err.status = 404;
       throw err;
@@ -84,11 +119,13 @@ class Customer {
     return customers.map(c => new Customer(c));
   }
 
+
   /** return full name (first name concat with last name) */
 
   fullName() {
     return `${this.firstName} ${this.lastName}`;
   }
+
 
   /** get all reservations for this customer. */
 
@@ -96,12 +133,10 @@ class Customer {
     return await Reservation.getReservationsForCustomer(this.id);
   }
 
+
   /** save this customer. */
 
   async save() {
-    //maybe want to separate these concerns? 
-    //or maybe this is better for front end to not have to think about
-    //the type of save they want to do?
     if (this.id === undefined) {
       const result = await db.query(
         `INSERT INTO customers (first_name, last_name, phone, notes)

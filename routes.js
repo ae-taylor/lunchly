@@ -3,7 +3,7 @@
 /** Routes for Lunchly */
 
 const express = require("express");
-const { connect } = require("./db");
+//make sure no unused errors are imported here
 
 const Customer = require("./models/customer");
 const Reservation = require("./models/reservation");
@@ -18,21 +18,46 @@ router.get("/", async function (req, res, next) {
   return res.render("customer_list.html", { customers });
 });
 
+
+/** Show list of top 10 customers who have at least one reservation */
+
+router.get("/top", async function (req, res, next) {
+  try {
+    const customers = await Customer.getTopTenCustomers();
+    customers.prefix = "Top";
+    //console.log("success condition in top 10 route ran, customers is", customers);
+    return res.render("customer_list.html", { customers });
+  } catch (err) {
+    err.status = 404;
+    err.message = "No top customers yet";
+    return res.render("error.html", { err });
+  }
+});
+
+
 /** Show list of customers matching searched name */
+
 router.get("/search", async function (req, res, next) {
   const name = req.query.name;
-  console.log(req.query.name)
-  const customers = await Customer.searchCustomers(name);
-  console.log(`route customers`, customers)
-  return res.render("customer_list.html", { customers })
-
+  //console.log(req.query.name)
+  try {
+    const customers = await Customer.searchCustomers(name);
+    return res.render("customer_list.html", { customers })
+  } catch (err) {
+    err.status = 404;
+    err.message = "Customer not found.";
+    console.log("route error is", err);
+    return res.render("error.html", { err });
+  }
 });
+
 
 /** Form to add a new customer. */
 
 router.get("/add/", async function (req, res, next) {
   return res.render("customer_new_form.html");
 });
+
 
 /** Handle adding a new customer. */
 
@@ -44,9 +69,13 @@ router.post("/add/", async function (req, res, next) {
   return res.redirect(`/${customer.id}/`);
 });
 
-router.get('/favicon.ico', function (req, res, next){
+
+/**Placeholder favicon function to make the browser happy */
+
+router.get('/favicon.ico', function (req, res, next) {
   return res.send('')
 })
+
 
 /** Show a customer, given their ID. */
 
@@ -58,6 +87,7 @@ router.get("/:id/", async function (req, res, next) {
   return res.render("customer_detail.html", { customer, reservations });
 });
 
+
 /** Show form to edit a customer. */
 
 router.get("/:id/edit/", async function (req, res, next) {
@@ -65,6 +95,7 @@ router.get("/:id/edit/", async function (req, res, next) {
 
   res.render("customer_edit_form.html", { customer });
 });
+
 
 /** Handle editing a customer. */
 
@@ -78,6 +109,7 @@ router.post("/:id/edit/", async function (req, res, next) {
 
   return res.redirect(`/${customer.id}/`);
 });
+
 
 /** Handle adding a new reservation. */
 
